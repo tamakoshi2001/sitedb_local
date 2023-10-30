@@ -1,0 +1,39 @@
+{
+  "manifest_version": 3,
+  "name": "リンク取得拡張機能",
+  "version": "1.0",
+  "permissions": [
+    "activeTab",
+    "tabs",
+    "scripting",
+    "notifications",
+    "setIcon"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "commands": {
+    "getLink": {
+      "suggested_key": {
+        "default": "Alt+Shift+A"
+      },
+      "description": "リンクを取得"
+    },
+    "removeLink": {
+      "suggested_key": {
+        "default": "Alt+Shift+D"
+      },
+      "description": "リンクを取得"
+    },
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Alt+Shift+H",
+        "mac": "Alt+Shift+H"
+      },
+      "description": "Run extension."
+    }
+  }
+}
