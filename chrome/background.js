@@ -14,23 +14,35 @@ chrome.commands.onCommand.addListener((command) => {
           },
           body: JSON.stringify({ url: url })
         })
-          .then(response => {
-            if (!response.ok) {
-              throw new Error('Network response was not ok');
-            }
-            return response.text();
-          })
-          .then(data => {
-
-            console.log(data);
-          })
-          .catch(error => {
-            console.log('There was a problem with the fetch operation:', error.message);
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.text();
+        })
+        .then(data => {
+          console.log(data);
+          // コマンド成功の通知を表示
+          chrome.notifications.create({
+            type: 'basic',
+            iconUrl: 'icon48.png',
+            title: 'URL Sent',
+            message: `The URL was successfully sent: ${url}`
           });
+        })
+        .catch(error => {
+          console.log('There was a problem with the fetch operation:', error.message);
+          chrome.notifications.create({
+            type: 'basic',
+            iconUrl: 'icon48.png',
+            title: 'Error',
+            message: `Failed to send the URL: ${error.message}`
+          });
+        });
       }
     });
   }
-  // removelink
+
   if (command === "removeLink") {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       let currentTab = tabs[0];
@@ -46,18 +58,31 @@ chrome.commands.onCommand.addListener((command) => {
           },
           body: JSON.stringify({ url: url })
         })
-          .then(response => {
-            if (!response.ok) {
-              throw new Error('Network response was not ok');
-            }
-            return response.text();
-          })
-          .then(data => {
-            console.log(data);
-          })
-          .catch(error => {
-            console.log('There was a problem with the fetch operation:', error.message);
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.text();
+        })
+        .then(data => {
+          console.log(data);
+          // コマンド成功の通知を表示
+          chrome.notifications.create({
+            type: 'basic',
+            iconUrl: 'icon48.png',
+            title: 'URL Removed',
+            message: `The URL was successfully removed: ${url}`
           });
+        })
+        .catch(error => {
+          console.log('There was a problem with the fetch operation:', error.message);
+          chrome.notifications.create({
+            type: 'basic',
+            iconUrl: 'icon48.png',
+            title: 'Error',
+            message: `Failed to remove the URL: ${error.message}`
+          });
+        });
       }
     });
   }

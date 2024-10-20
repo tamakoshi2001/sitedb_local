@@ -34,10 +34,6 @@ func NewSiteService(sites *[]model.Site, vectors *[]model.Vector) *SiteService {
 	}
 }
 
-// env
-const completionURL = "https://api.openai.com/v1/chat/completions"
-const embeddingURL = "https://api.openai.com/v1/embeddings"
-
 // Create handles the endpoint that creates the Site.
 func (s *SiteService) Create(r *model.CreateSiteRequest) (*model.CreateSiteResponse, error) {
 	// get url from request
@@ -68,7 +64,7 @@ func (s *SiteService) Create(r *model.CreateSiteRequest) (*model.CreateSiteRespo
 	}
 
 	// Combine title and body
-	post = title + CutString(body, 4000)
+	post = title + CutString(body, 60000)
 	question = "200字で要約して。 \n" + post
 	summary, err := getCompletionResponse(question)
 	if err != nil {
@@ -103,7 +99,7 @@ func (s *SiteService) Read(r *model.ReadSiteRequest) (*model.ReadSiteResponse, e
 	var wg sync.WaitGroup
 
 	query := r.Query
-	e, err := getEmbeddingResponse(CutString(query, 4000))
+	e, err := getEmbeddingResponse(CutString(query, 60000))
 	if err != nil {
 		return nil, err
 	}
@@ -157,6 +153,8 @@ func (s *SiteService) Delete(r *model.DeleteSiteRequest) (*model.DeleteSiteRespo
 }
 
 func getCompletionResponse(question string) (*model.CompletionResponse, error) {
+	const completionURL = "https://api.openai.com/v1/chat/completions"
+
 	messages := []model.Message{}
 	messages = append(messages, model.Message{
 		Role:    "user",
@@ -164,7 +162,7 @@ func getCompletionResponse(question string) (*model.CompletionResponse, error) {
 	})
 
 	requestBody := model.CompletionRequest{
-		Model:    "gpt-3.5-turbo",
+		Model:    "gpt-4o-mini",
 		Messages: messages,
 	}
 
@@ -205,8 +203,10 @@ func getCompletionResponse(question string) (*model.CompletionResponse, error) {
 }
 
 func getEmbeddingResponse(question string) (*model.EmbeddingResponse, error) {
+	const embeddingURL = "https://api.openai.com/v1/embeddings"
+
 	requestBody := model.EmbeddingRequest{
-		Model: "text-embedding-ada-002",
+		Model: "text-embedding-3-small",
 		Input: question,
 	}
 

@@ -64,16 +64,17 @@ func (h *SiteHandler) HandlePost(w http.ResponseWriter, r *http.Request) {
 
 // Read handles the endpoint that read the Site.
 func (h *SiteHandler) HandleGet(w http.ResponseWriter, r *http.Request) {
-	var req model.ReadSiteRequest
-	err := json.NewDecoder(r.Body).Decode(&req)
-	if err != nil {
-		errMsg := fmt.Sprintf("Error: failed to decode request body. Details: %v", err)
+	// クエリパラメータからデータを取得
+	query := r.URL.Query().Get("query")
 
-		// エラーをログに出力
-		log.Println(errMsg)
+	// ReadSiteRequest にキャスト
+	req := model.ReadSiteRequest{
+		Query: query,
+	}
 
-		// http error
-		http.Error(w, errMsg, http.StatusInternalServerError)
+	// クエリパラメータが存在しない場合、エラーレスポンスを返す
+	if req.Query == "" {
+		http.Error(w, "query parameter is missing", http.StatusBadRequest)
 		return
 	}
 

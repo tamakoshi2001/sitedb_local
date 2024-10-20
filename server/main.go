@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -13,18 +12,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/rs/cors"
 	"github.com/tamakoshi2001/gextension/handler/router"
 	"github.com/tamakoshi2001/gextension/model"
 )
-
-const sitesPath = "save/sites.json"
-const vectorsPath = "save/vectors.json"
-
-var BUCKET_NAME = os.Getenv("BUCKET_NAME")
 
 func main() {
 	err := realMain()
@@ -38,6 +29,8 @@ func realMain() error {
 	const (
 		defaultPort   = ":8080"
 		defaultDBPath = ".sqlite3/todo.db"
+		sitesPath     = "save/sites.json"
+		vectorsPath   = "save/vectors.json"
 	)
 
 	port := os.Getenv("PORT")
@@ -51,10 +44,6 @@ func realMain() error {
 	if err != nil {
 		return err
 	}
-
-	downloadFileFromS3(sitesPath)
-	downloadFileFromS3(vectorsPath)
-	log.Println("S3からダウンロードが完了しました。")
 
 	sites, err := loadSites(sitesPath)
 	if err != nil {
@@ -115,22 +104,10 @@ func realMain() error {
 	if err != nil {
 		return err
 	}
-	err = savevectors(vectors, vectorsPath)
+	err = saveVectors(vectors, vectorsPath)
 	if err != nil {
 		return err
 	}
-
-	// upload files to S3
-	err = uploadFileToS3(sitesPath)
-	if err != nil {
-		return err
-	}
-	err = uploadFileToS3(vectorsPath)
-	if err != nil {
-		return err
-	}
-
-	log.Println("S3へアップロードが完了しました。")
 
 	// print shutdown message
 	log.Println("main: server shutdown successfully")
@@ -158,7 +135,7 @@ func saveSites(sites []model.Site, sitesPath string) error {
 }
 
 // save vectors  to a file
-func savevectors(vectors []model.Vector, vectorsPath string) error {
+func saveVectors(vectors []model.Vector, vectorsPath string) error {
 
 	// 構造体をJSONに変換
 	data, err := json.MarshalIndent(vectors, "", "  ")
@@ -214,78 +191,4 @@ func loadVectors(vectorsPath string) ([]model.Vector, error) {
 	}
 
 	return vectors, nil
-}
-
-// upload a file to S3
-func uploadFileToS3(filePath string) error {
-	sess, err := session.NewSession(&aws.Config{
-		Region: aws.String("ap-northeast-1"), // リージョンを変更してください
-	})
-
-	svc := s3.New(sess)
-
-	file, err := os.Open(filePath)
-	if err != nil {
-		log.Fatalf("Failed to open file %q, %v", filePath, err)
-	}
-
-	defer file.Close()
-
-	fileInfo, _ := file.Stat()
-	var size int64 = fileInfo.Size()
-	buffer := make([]byte, size)
-
-	// read file content to buffer
-	file.Read(buffer)
-
-	// S3にアップロードする内容をparamsに入れます
-	params := &s3.PutObjectInput{
-		Bucket: aws.String(BUCKET_NAME),
-		Key:    aws.String(filePath),
-		Body:   bytes.NewReader(buffer),
-	}
-
-	// S3にアップロードします
-	_, err = svc.PutObject(params)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// download a file from S3
-func downloadFileFromS3(filePath string) error {
-	// ファイルを作成します。
-	file, err := os.Create(filePath)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	sess, err := session.NewSession(&aws.Config{
-		Region: aws.String("ap-northeast-1"), // リージョンを変更してください
-	})
-
-	svc := s3.New(sess)
-
-	result, err := svc.GetObject(&s3.GetObjectInput{
-		Bucket: aws.String(BUCKET_NAME),
-		Key:    aws.String(filePath),
-	})
-	if err != nil {
-		log.Println(err)
-		return nil
-	}
-
-	//imageをbytes.Buffer型に変換します
-	buf := new(bytes.Buffer)
-	buf.ReadFrom(result.Body)
-
-	// ファイルに書き込みします。
-	_, err = file.Write(buf.Bytes())
-	if err != nil {
-		log.Println(err)
-		return nil
-	}
-	return nil
 }

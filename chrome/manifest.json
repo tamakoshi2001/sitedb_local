@@ -4,6 +4,7 @@
   "version": "1.0",
   "permissions": [
     "activeTab",
+    "commands",
     "tabs",
     "scripting",
     "notifications",
@@ -13,25 +14,30 @@
     "service_worker": "background.js"
   },
   "action": {
-    "default_popup": "popup.html"
+    "default_popup": "popup.html",
+    "default_icon": {
+      "48": "icon48.png"
+    }
   },
   "commands": {
     "getLink": {
       "suggested_key": {
-        "default": "Alt+Shift+A"
+        "default": "Alt+Shift+A",
+        "mac": "MacCtrl+Shift+A"
       },
       "description": "リンクを取得"
     },
     "removeLink": {
       "suggested_key": {
-        "default": "Alt+Shift+D"
+        "default": "Alt+Shift+D",
+        "mac": "MacCtrl+Shift+D"
       },
       "description": "リンクを取得"
     },
     "_execute_action": {
       "suggested_key": {
         "default": "Alt+Shift+H",
-        "mac": "Alt+Shift+H"
+        "mac": "MacCtrl+Shift+H"
       },
       "description": "Run extension."
     }

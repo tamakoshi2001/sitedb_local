@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>記事検索</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding-top: 50px;
+        }
+        input[type="text"] {
+            width: 300px;
+            padding: 10px;
+            font-size: 16px;
+        }
+        input[type="submit"] {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin-left: 10px;
+        }
+        #results {
+            margin-top: 30px;
+            text-align: left;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .result-item {
+            border-bottom: 1px solid #ccc;
+            padding: 10px 0;
+        }
+        .result-item a {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1a0dab;
+            text-decoration: none;
+        }
+        .result-item p {
+            margin: 5px 0;
+            color: #666;
+        }
+        .created-at {
+            color: #888;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>記事検索</h1>
+    <form id="searchForm">
+        <input type="text" id="query" placeholder="検索する内容を入力">
+        <input type="submit" value="検索">
+    </form>
+
+    <div id="results"></div>
+
+    <script>
+        // Mock API URL（適当なAPIに変更可能）
+        const apiUrl = 'http://localhost:8080/site';
+
+        // 検索フォームのサブミットイベントをキャッチ
+        document.getElementById('searchForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const query = document.getElementById('query').value;
+            searchArticles(query);
+        });
+
+        // 検索処理を行う関数
+        function searchArticles(query) {
+            // クエリをURLに追加してGETリクエストを行う
+            const url = apiUrl + '?query=' + encodeURIComponent(query);
+
+            // GETリクエストを送信
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    displayResults(data.Sites);
+                })
+                .catch(error => {
+                    console.error('Error1:', error);
+                });
+        }
+
+        // 検索結果を表示する関数
+        function displayResults(articles) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = ''; // 前の結果をクリア
+
+            if (articles.length === 0) {
+                resultsDiv.innerHTML = '<p>結果が見つかりませんでした。</p>';
+                return;
+            }
+
+            articles.forEach(article => {
+                const articleDiv = document.createElement('div');
+                articleDiv.className = 'result-item';
+
+                const title = document.createElement('a');
+                title.href = article.url;
+                title.textContent = article.title;
+                title.target = '_blank';
+
+                const summary = document.createElement('p');
+                summary.textContent = article.summary;
+
+                const createdAt = document.createElement('p');
+                createdAt.className = 'created-at';
+                createdAt.textContent = '作成日: ' + new Date(article.created_at).toLocaleDateString('ja-JP');
+
+                articleDiv.appendChild(title);
+                articleDiv.appendChild(createdAt);
+                articleDiv.appendChild(summary);
+                resultsDiv.appendChild(articleDiv);
+            });
+        }
+    </script>
+</body>
+</html>
+
